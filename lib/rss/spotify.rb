@@ -14,34 +14,11 @@ module RSS
   module SpotifyModelUtils
     include Utils
 
-    def def_class_accessor(klass, name, type, *args)
+    def def_class_accessor(klass, name)
       normalized_name = name.gsub(/-/, "_")
       full_name = "#{SPOTIFY_PREFIX}_#{normalized_name}"
-      klass_name = "Spotify#{Utils.to_class_name(normalized_name)}"
 
-      case type
-      when :element, :attribute
-        klass::ELEMENTS << full_name
-        def_element_class_accessor(klass, name, full_name, klass_name, *args)
-      when :elements
-        klass::ELEMENTS << full_name
-        def_elements_class_accessor(klass, name, full_name, klass_name, *args)
-      else
-        klass.install_must_call_validator(SPOTIFY_PREFIX, SPOTIFY_URI)
-        klass.install_text_element(normalized_name, SPOTIFY_URI, "?", full_name, type, name)
-      end
-    end
-
-    def def_element_class_accessor(klass, name, full_name, klass_name,
-                                   recommended_attribute_name=nil)
       klass.install_have_child_element(name, SPOTIFY_PREFIX, "?", full_name)
-    end
-
-    def def_elements_class_accessor(klass, name, full_name, klass_name,
-                                    plural_name, recommended_attribute_name=nil)
-      full_plural_name = "#{SPOTIFY_PREFIX}_#{plural_name}"
-      klass.install_have_children_element(name, SPOTIFY_PREFIX, "*",
-                                          full_name, full_plural_name)
     end
   end
 
@@ -50,9 +27,7 @@ module RSS
 
     ELEMENTS = []
 
-    ELEMENT_INFOS = [
-      ["access", :element]
-    ]
+    ELEMENT_INFOS = ["access"]
   end
 
   module SpotifyChannelModel
@@ -61,19 +36,16 @@ module RSS
     include SpotifyBaseModel
 
     ELEMENTS = []
+    ELEMENT_INFOS = SpotifyBaseModel::ELEMENT_INFOS
 
     class << self
       def append_features(klass)
         super
 
         return if klass.instance_of?(Module)
-        ELEMENT_INFOS.each do |name, type, *additional_infos|
-          def_class_accessor(klass, name, type, *additional_infos)
-        end
+        ELEMENT_INFOS.each { |name| def_class_accessor(klass, name) }
       end
     end
-
-    ELEMENT_INFOS = SpotifyBaseModel::ELEMENT_INFOS
 
     class SpotifyAccess < Element
       include RSS09
@@ -90,12 +62,8 @@ module RSS
         end
       end
 
-      [
-        ['partner', nil],
-        ['sandbox', '?']
-      ].each do |name, occurs|
-        install_have_children_element(name, "", occurs)
-      end
+      install_have_children_element('partner', '', nil)
+      install_have_children_element('sandbox', '', '?')
 
       def full_name
         tag_name_with_prefix(SPOTIFY_PREFIX)
@@ -154,18 +122,16 @@ module RSS
     extend SpotifyModelUtils
     include SpotifyBaseModel
 
+    ELEMENT_INFOS = SpotifyBaseModel::ELEMENT_INFOS
+
     class << self
       def append_features(klass)
         super
 
         return if klass.instance_of?(Module)
-        ELEMENT_INFOS.each do |name, type|
-          def_class_accessor(klass, name, type)
-        end
+        ELEMENT_INFOS.each { |name| def_class_accessor(klass, name) }
       end
     end
-
-    ELEMENT_INFOS = SpotifyBaseModel::ELEMENT_INFOS
 
     class SpotifyAccess < Element
       include RSS09
@@ -182,11 +148,7 @@ module RSS
         end
       end
 
-      [
-        ['entitlement', nil],
-      ].each do |name, occurs|
-        install_have_children_element(name, "", occurs)
-      end
+      install_have_children_element('entitlement', '', nil)
 
       def full_name
         tag_name_with_prefix(SPOTIFY_PREFIX)
@@ -230,14 +192,8 @@ module RSS
   end
 
   element_infos = SpotifyChannelModel::ELEMENT_INFOS + SpotifyItemModel::ELEMENT_INFOS
-  element_infos.each do |name, type|
-    case type
-    when :element, :elements, :attribute
-      class_name = Utils.to_class_name(name)
-      BaseListener.install_class_name(SPOTIFY_URI, name, "Spotify#{class_name}")
-    else
-      accessor_base = "#{SPOTIFY_PREFIX}_#{name.gsub(/-/, '_')}"
-      BaseListener.install_get_text_element(SPOTIFY_URI, name, accessor_base)
-    end
+  element_infos.each do |name|
+    class_name = Utils.to_class_name(name)
+    BaseListener.install_class_name(SPOTIFY_URI, name, "Spotify#{class_name}")
   end
 end
