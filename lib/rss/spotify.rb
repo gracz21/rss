@@ -170,17 +170,6 @@ module RSS
           end
         end
       end
-
-      private
-
-      def maker_target(target)
-        target.spotify_access
-      end
-
-      def setup_maker_element(spotify_access)
-        super(spotify_access)
-        spotify_access.spotify_entitlement_name = entitlement.name
-      end
     end
   end
 
