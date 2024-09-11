@@ -41,7 +41,7 @@ module RSS
             current.spotify_access.partners << current.class::SpotifyAccess::Partner.new
             current.spotify_access.partner.id = @spotify_partner_id
 
-            unless @spotify_sandbox_enabled.nil?
+            if @spotify_sandbox_enabled
               current.spotify_access.sandboxs << current.class::SpotifyAccess::Sandbox.new
               current.spotify_access.sandbox.enabled = @spotify_sandbox_enabled
             end
