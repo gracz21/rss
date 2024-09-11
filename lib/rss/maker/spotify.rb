@@ -68,14 +68,22 @@ module RSS
       end
 
       class SpotifyAccessBase < Base
-        add_need_initialize_variable('spotify_entitlement_name')
-        attr_accessor('spotify_entitlement_name')
+        def_array_element('entitlement', 'spotify_entitlements', 'SpotifyEntitlement')
 
-        def to_feed(_feed, current)
-          if @spotify_entitlement_name && current.respond_to?(:spotify_access=)
-            current.spotify_access ||= current.class::SpotifyAccess.new
-            current.spotify_access.entitlements << current.class::SpotifyAccess::Entitlement.new
-            current.spotify_access.entitlement.name = @spotify_entitlement_name
+        class SpotifyEntitlementBase < Base
+          attr_accessor :name
+          add_need_initialize_variable('name')
+
+          def have_required_values?
+            name
+          end
+
+          def to_feed(_feed, current)
+            if name and current.respond_to?(:spotify_access)
+              current.spotify_access ||= current.class::SpotifyAccess.new
+              new_entitlement = current.class::SpotifyAccess::Entitlement.new(name)
+              current.spotify_access.entitlements << new_entitlement
+            end
           end
         end
       end
@@ -91,7 +99,11 @@ module RSS
       class ItemBase
         include Maker::SpotifyItemModel
 
-        class SpotifyAccess < SpotifyAccessBase; end
+        class SpotifyAccess < SpotifyAccessBase
+          class SpotifyEntitlement < SpotifyEntitlementBase
+            SpotifyEntitlement = self
+          end
+        end
       end
     end
   end
