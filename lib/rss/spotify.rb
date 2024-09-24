@@ -5,7 +5,7 @@ module RSS
   # The prefix for the Spotify XML namespace.
   SPOTIFY_PREFIX = 'spotify'
   # The URI of the Spotify Namespace specification.
-  SPOTIFY_URI = 'http://purl.org/rss/1.0/modules/podcast/'
+  SPOTIFY_URI = 'http://www.spotify.com/ns/rss'
 
   # Spec: https://developer.spotify.com/documentation/open-access/tutorials/content
 
